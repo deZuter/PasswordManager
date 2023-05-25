@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace PasswordManager
 {
-    public class Account
+    public interface IGroupEntry
     {
-
+        string getName();
     }
 }

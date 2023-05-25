@@ -46,13 +46,15 @@
             this.инструментыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.генерацияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.оПрограммеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.treeView1 = new System.Windows.Forms.TreeView();
+            this.twGroups = new System.Windows.Forms.TreeView();
             this.tbSearch = new System.Windows.Forms.TextBox();
             this.btnAdd = new System.Windows.Forms.Button();
             this.btnDeleteAccount = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.lwAccounts = new System.Windows.Forms.ListView();
+            this.btnPlus = new System.Windows.Forms.Button();
+            this.btnMinus = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -88,7 +90,7 @@
             this.базаДанныхToolStripMenuItem,
             this.группаToolStripMenuItem});
             this.новыйФайлToolStripMenuItem.Name = "новыйФайлToolStripMenuItem";
-            this.новыйФайлToolStripMenuItem.Size = new System.Drawing.Size(206, 24);
+            this.новыйФайлToolStripMenuItem.Size = new System.Drawing.Size(189, 24);
             this.новыйФайлToolStripMenuItem.Text = "Новый";
             // 
             // базаДанныхToolStripMenuItem
@@ -106,8 +108,9 @@
             // открытьToolStripMenuItem
             // 
             this.открытьToolStripMenuItem.Name = "открытьToolStripMenuItem";
-            this.открытьToolStripMenuItem.Size = new System.Drawing.Size(206, 24);
+            this.открытьToolStripMenuItem.Size = new System.Drawing.Size(189, 24);
             this.открытьToolStripMenuItem.Text = "Открыть";
+            this.открытьToolStripMenuItem.Click += new System.EventHandler(this.открытьToolStripMenuItem_Click);
             // 
             // экспортироватьToolStripMenuItem
             // 
@@ -115,7 +118,7 @@
             this.зашифрованныйВидToolStripMenuItem,
             this.незашифрованныйToolStripMenuItem});
             this.экспортироватьToolStripMenuItem.Name = "экспортироватьToolStripMenuItem";
-            this.экспортироватьToolStripMenuItem.Size = new System.Drawing.Size(206, 24);
+            this.экспортироватьToolStripMenuItem.Size = new System.Drawing.Size(189, 24);
             this.экспортироватьToolStripMenuItem.Text = "Экспортировать";
             // 
             // зашифрованныйВидToolStripMenuItem
@@ -133,7 +136,7 @@
             // импортироватьToolStripMenuItem
             // 
             this.импортироватьToolStripMenuItem.Name = "импортироватьToolStripMenuItem";
-            this.импортироватьToolStripMenuItem.Size = new System.Drawing.Size(206, 24);
+            this.импортироватьToolStripMenuItem.Size = new System.Drawing.Size(189, 24);
             this.импортироватьToolStripMenuItem.Text = "Импортировать";
             // 
             // видToolStripMenuItem
@@ -150,7 +153,7 @@
             this.темнаяToolStripMenuItem,
             this.светлаяToolStripMenuItem});
             this.темаToolStripMenuItem.Name = "темаToolStripMenuItem";
-            this.темаToolStripMenuItem.Size = new System.Drawing.Size(206, 24);
+            this.темаToolStripMenuItem.Size = new System.Drawing.Size(117, 24);
             this.темаToolStripMenuItem.Text = "Тема";
             // 
             // темнаяToolStripMenuItem
@@ -176,7 +179,7 @@
             // генерацияToolStripMenuItem
             // 
             this.генерацияToolStripMenuItem.Name = "генерацияToolStripMenuItem";
-            this.генерацияToolStripMenuItem.Size = new System.Drawing.Size(206, 24);
+            this.генерацияToolStripMenuItem.Size = new System.Drawing.Size(202, 24);
             this.генерацияToolStripMenuItem.Text = "Генерация пароля";
             // 
             // оПрограммеToolStripMenuItem
@@ -185,12 +188,13 @@
             this.оПрограммеToolStripMenuItem.Size = new System.Drawing.Size(109, 23);
             this.оПрограммеToolStripMenuItem.Text = "О программе";
             // 
-            // treeView1
+            // twGroups
             // 
-            this.treeView1.Location = new System.Drawing.Point(12, 37);
-            this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(137, 383);
-            this.treeView1.TabIndex = 2;
+            this.twGroups.Location = new System.Drawing.Point(12, 63);
+            this.twGroups.Name = "twGroups";
+            this.twGroups.Size = new System.Drawing.Size(137, 357);
+            this.twGroups.TabIndex = 2;
+            this.twGroups.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.twGroups_AfterSelect);
             // 
             // tbSearch
             // 
@@ -209,6 +213,7 @@
             this.btnAdd.TabIndex = 4;
             this.btnAdd.Text = "Добавить";
             this.btnAdd.UseVisualStyleBackColor = true;
+            this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
             // 
             // btnDeleteAccount
             // 
@@ -245,17 +250,38 @@
             this.lwAccounts.TabIndex = 7;
             this.lwAccounts.UseCompatibleStateImageBehavior = false;
             // 
+            // btnPlus
+            // 
+            this.btnPlus.Location = new System.Drawing.Point(126, 37);
+            this.btnPlus.Name = "btnPlus";
+            this.btnPlus.Size = new System.Drawing.Size(23, 23);
+            this.btnPlus.TabIndex = 8;
+            this.btnPlus.Text = "+";
+            this.btnPlus.UseVisualStyleBackColor = true;
+            this.btnPlus.Click += new System.EventHandler(this.btnPlus_Click);
+            // 
+            // btnMinus
+            // 
+            this.btnMinus.Location = new System.Drawing.Point(102, 37);
+            this.btnMinus.Name = "btnMinus";
+            this.btnMinus.Size = new System.Drawing.Size(22, 23);
+            this.btnMinus.TabIndex = 9;
+            this.btnMinus.Text = "-";
+            this.btnMinus.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(609, 454);
+            this.Controls.Add(this.btnMinus);
+            this.Controls.Add(this.btnPlus);
             this.Controls.Add(this.lwAccounts);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnDeleteAccount);
             this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.tbSearch);
-            this.Controls.Add(this.treeView1);
+            this.Controls.Add(this.twGroups);
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
@@ -290,13 +316,15 @@
         private System.Windows.Forms.ToolStripMenuItem светлаяToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem генерацияToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem группаToolStripMenuItem;
-        private System.Windows.Forms.TreeView treeView1;
+        private System.Windows.Forms.TreeView twGroups;
         private System.Windows.Forms.TextBox tbSearch;
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.Button btnDeleteAccount;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ListView lwAccounts;
+        private System.Windows.Forms.Button btnPlus;
+        private System.Windows.Forms.Button btnMinus;
     }
 }
 

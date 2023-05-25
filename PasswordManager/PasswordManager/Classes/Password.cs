@@ -3,27 +3,29 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 using System.Timers;
 using Timer = System.Timers.Timer;
-using Newtonsoft.Json.Linq;
+using System.Security.Cryptography.Xml;
+
 
 namespace PasswordManager
 {
     public class Password
     {
-        byte[] password_masterKey;  //Единственное, что изначально необходимо для создания пароля.
+        byte[] password_masterKey;  //Единственное, что изначально необходимо для создания пароля (и сам пароль).
 
         byte[] encryptedPassword;
         byte[] password_salt;
         byte[] password_IV;
 
-        Password(string password, string masterKey) 
+        public Password(string password, string masterKey) 
         {
             setPassword(password, masterKey);
         }
 
-        Password(JObject jsonPassword) 
+        public Password(JObject jsonPassword) 
         {
             if (jsonPassword == null)
             {
@@ -43,7 +45,7 @@ namespace PasswordManager
             }
             password_salt = Convert.FromBase64String(saltToken.Value<string>());
 
-            var encryptedPasswordToken = jsonPassword["EncryptedPassword"];
+            var encryptedPasswordToken = jsonPassword["Data"];
             if (encryptedPasswordToken == null || encryptedPasswordToken.Type != JTokenType.String)
             {
                 throw new ArgumentException("Invalid encrypted password in encrypted password JSON.");
@@ -68,7 +70,7 @@ namespace PasswordManager
             ProtectedMemory.Unprotect(password_masterKey, MemoryProtectionScope.SameLogon);
         }
 
-        public void setPassword(string password, string masterKey)
+        private void setPassword(string password, string masterKey)
         {
             if (password == null || password.Length == 0 || masterKey == null || masterKey.Length == 0)
             {
@@ -88,7 +90,7 @@ namespace PasswordManager
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.ISO10126;
 
-                var keyGenerator = new Rfc2898DeriveBytes(masterKey, salt, 150);
+                var keyGenerator = new Rfc2898DeriveBytes(masterKey, salt, 1000);
                 aes.Key = keyGenerator.GetBytes(aes.KeySize / 8);   //Здесь генерируется Key для пароля
                 aes.IV = keyGenerator.GetBytes(aes.BlockSize / 8);  //Здесь генерируется IV для пароля
 
@@ -127,7 +129,7 @@ namespace PasswordManager
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.ISO10126;
 
-                var keyGenerator = new Rfc2898DeriveBytes(password_masterKey, password_salt, 150);
+                var keyGenerator = new Rfc2898DeriveBytes(password_masterKey, password_salt, 1000);
                 aes.Key = keyGenerator.GetBytes(aes.KeySize / 8);
                 aes.IV = password_IV;
 
@@ -135,7 +137,6 @@ namespace PasswordManager
                 {
                     byte[] decryptedBytes = decryptor.TransformFinalBlock(encryptedPassword, 0, encryptedPassword.Length);
                     aes.Clear();
-
                     return Encoding.UTF8.GetString(decryptedBytes);
                 }
             }
@@ -156,5 +157,14 @@ namespace PasswordManager
             Clipboard.Clear();
         }
 
+        public JObject getJsonPassword() 
+        {
+            UnprotectPasswordValuesInOperationalMemory();
+            JObject passwordJson = new JObject();
+            passwordJson["IV"] = Convert.ToBase64String(password_IV);
+            passwordJson["Salt"] = Convert.ToBase64String(password_salt);
+            passwordJson["Data"] = Convert.ToBase64String(encryptedPassword);
+            return passwordJson;
+        }
     }
 }
