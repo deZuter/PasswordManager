@@ -29,13 +29,13 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AddAccountForm));
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.txtAccountName = new System.Windows.Forms.TextBox();
             this.lblAccountName = new System.Windows.Forms.Label();
             this.txtPassword = new System.Windows.Forms.TextBox();
             this.lblPassword = new System.Windows.Forms.Label();
             this.btnShowPassword = new System.Windows.Forms.Button();
             this.pProperties = new System.Windows.Forms.Panel();
-            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.txtLogin = new System.Windows.Forms.TextBox();
             this.lblLogin = new System.Windows.Forms.Label();
             this.lblProperties = new System.Windows.Forms.Label();
             this.btnAddProperty = new System.Windows.Forms.Button();
@@ -43,12 +43,12 @@
             this.btnOk = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // textBox1
+            // txtAccountName
             // 
-            this.textBox1.Location = new System.Drawing.Point(12, 29);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(313, 20);
-            this.textBox1.TabIndex = 0;
+            this.txtAccountName.Location = new System.Drawing.Point(12, 29);
+            this.txtAccountName.Name = "txtAccountName";
+            this.txtAccountName.Size = new System.Drawing.Size(313, 20);
+            this.txtAccountName.TabIndex = 0;
             // 
             // lblAccountName
             // 
@@ -93,12 +93,12 @@
             this.pProperties.Size = new System.Drawing.Size(313, 189);
             this.pProperties.TabIndex = 5;
             // 
-            // textBox3
+            // txtLogin
             // 
-            this.textBox3.Location = new System.Drawing.Point(12, 75);
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(313, 20);
-            this.textBox3.TabIndex = 6;
+            this.txtLogin.Location = new System.Drawing.Point(12, 75);
+            this.txtLogin.Name = "txtLogin";
+            this.txtLogin.Size = new System.Drawing.Size(313, 20);
+            this.txtLogin.TabIndex = 6;
             // 
             // lblLogin
             // 
@@ -157,13 +157,13 @@
             this.Controls.Add(this.btnAddProperty);
             this.Controls.Add(this.lblProperties);
             this.Controls.Add(this.lblLogin);
-            this.Controls.Add(this.textBox3);
+            this.Controls.Add(this.txtLogin);
             this.Controls.Add(this.pProperties);
             this.Controls.Add(this.btnShowPassword);
             this.Controls.Add(this.lblPassword);
             this.Controls.Add(this.txtPassword);
             this.Controls.Add(this.lblAccountName);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.txtAccountName);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AddAccountForm";
             this.Text = "Новый аккаунт";
@@ -174,13 +174,13 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox txtAccountName;
         private System.Windows.Forms.Label lblAccountName;
         private System.Windows.Forms.TextBox txtPassword;
         private System.Windows.Forms.Label lblPassword;
         private System.Windows.Forms.Button btnShowPassword;
         private System.Windows.Forms.Panel pProperties;
-        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.TextBox txtLogin;
         private System.Windows.Forms.Label lblLogin;
         private System.Windows.Forms.Label lblProperties;
         private System.Windows.Forms.Button btnAddProperty;

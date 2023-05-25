@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PasswordManager.Classes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,14 +13,20 @@ namespace PasswordManager.Forms
 {
     public partial class AddAccountForm : Form
     {
-        public AddAccountForm()
+        public AccountEntry account;
+        MasterKey key;
+
+        public AddAccountForm(MasterKey key)
         {
+            this.key = key;
+            account = null;
             InitializeComponent();
             txtPassword.UseSystemPasswordChar = true;
             // Установка шрифта кнопки, поддерживающего символы Unicode
             btnShowPassword.Font = new Font("Segoe UI Emoji", 8);
             // Установка текста кнопки на символ глаза
             btnShowPassword.Text = "\U0001F441";
+
         }
 
         private void btnAddProperty_Click(object sender, EventArgs e)
@@ -53,6 +60,7 @@ namespace PasswordManager.Forms
 
         private void btnOk_Click(object sender, EventArgs e)
         {
+            account = new AccountEntry(txtAccountName.Text, txtLogin.Text, txtPassword.Text, key);
             //groupName = txtGroupName.Text;
             DialogResult = DialogResult.OK;
         }

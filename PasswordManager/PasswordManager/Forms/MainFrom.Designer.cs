@@ -243,12 +243,14 @@
             // 
             // lwAccounts
             // 
+            this.lwAccounts.FullRowSelect = true;
             this.lwAccounts.HideSelection = false;
             this.lwAccounts.Location = new System.Drawing.Point(156, 63);
             this.lwAccounts.Name = "lwAccounts";
             this.lwAccounts.Size = new System.Drawing.Size(441, 357);
             this.lwAccounts.TabIndex = 7;
             this.lwAccounts.UseCompatibleStateImageBehavior = false;
+            this.lwAccounts.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lwAccounts_MouseDoubleClick);
             // 
             // btnPlus
             // 

@@ -1,18 +1,11 @@
 ﻿using Newtonsoft.Json.Linq;
+using PasswordManager.Classes;
 using PasswordManager.Forms;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using TreeView = System.Windows.Forms.TreeView;
-//using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Timer = System.Timers.Timer;
 
 namespace PasswordManager
 {
@@ -22,6 +15,9 @@ namespace PasswordManager
         int blockSize = 16;
         int keyLen;
 
+        MasterKey key;
+
+
         public MainForm()
         {
             string key = null;
@@ -30,29 +26,13 @@ namespace PasswordManager
                 if (inputDialog.ShowDialog() == DialogResult.OK)
                 {
                     // Получаем выбранный узел и добавляем туда новую запись, с именем из диалогового окна
-                    key = inputDialog.key;
+                    this.key = new MasterKey(inputDialog.key);
                 }
                 else 
                 {
                     this.Close();
                 }
             }
-            // Проверяем длину ключа
-            if (key.Length % blockSize != 0)
-            {
-                int paddingSize = blockSize - (key.Length % blockSize);
-                paddedKey = new byte[key.Length + paddingSize];
-
-                // Копируем оригинальный ключ в выровненный массив
-                Array.Copy(Encoding.UTF8.GetBytes(key), paddedKey, key.Length);
-            }
-            else
-            {
-                // Длина ключа уже кратна 16 байтам, не требуется выравнивание
-                paddedKey = Encoding.UTF8.GetBytes(key);
-            }
-            keyLen = key.Length;
-            ProtectedMemory.Protect(paddedKey, MemoryProtectionScope.SameLogon);
             InitializeComponent();
         }
 
@@ -66,13 +46,68 @@ namespace PasswordManager
         #region lwAccounts
         private void lwAccounts_init()
         {
-            lwAccounts.Columns.Add("Название", 150);
-            lwAccounts.Columns.Add("Логин", 150);
-            lwAccounts.Columns.Add("Пароль", 150);
-            lwAccounts.View = View.Details;
-            lwAccounts.Scrollable = true;
-            lwAccounts.HeaderStyle = ColumnHeaderStyle.Clickable;
+            listViewManager = new ListViewManager(lwAccounts);
         }
+
+        ListViewManager listViewManager;
+        public class ListViewManager
+        {
+            private ListView _lwAccounts;
+            private GroupEntry _groupEntry;
+            public ListViewManager(ListView listView)
+            {
+                this._lwAccounts = listView;
+                _lwAccounts.Columns.Add("Название", 150);
+                _lwAccounts.Columns.Add("Логин", 150);
+                _lwAccounts.Columns.Add("Пароль", 150);
+                _lwAccounts.View = View.Details;
+                _lwAccounts.Scrollable = true;
+                _lwAccounts.HeaderStyle = ColumnHeaderStyle.Clickable;
+            }
+            public void AddAccountEntry(AccountEntry account)
+            {
+                _groupEntry.addAccountEntry(account);
+                PopulateListView();
+            }
+            public void setNewGroup(GroupEntry group)
+            {
+                this._groupEntry = group;
+                PopulateListView();
+            }
+            private void PopulateListView()
+            {
+                List<AccountEntry> accountEntries = _groupEntry.GetAccountEntries();
+                // Очистка ListView перед добавлением новых данных
+                _lwAccounts.Items.Clear();
+
+                if (accountEntries == null)
+                {
+                    // Добавление сообщения о пустом списке в ListView
+                    ListViewItem emptyItem = new ListViewItem("No entries found");
+                    _lwAccounts.Items.Add(emptyItem);
+                    return;
+                }
+                // Проход по списку AccountEntry и добавление данных в ListView
+                foreach (AccountEntry entry in accountEntries)
+                {
+                    // Создание новой строки для ListView
+                    ListViewItem item = new ListViewItem(entry.accountName);
+
+                    // Добавление логина во вторую колонку
+                    item.SubItems.Add(entry.login);
+
+                    // Добавление пароля в третью колонку
+                    item.SubItems.Add("********");
+
+                    // Установка Tag в качестве ссылки на соответствующий объект AccountEntry
+                    item.Tag = entry;
+
+                    // Добавление строки в ListView
+                    _lwAccounts.Items.Add(item);
+                }
+            }
+        }
+
         #endregion
 
         #region tbSearch
@@ -108,16 +143,10 @@ namespace PasswordManager
         #region twGroups
         GroupEntry rootEntry;
         TreeViewManager treeViewManager;
-        private void twGroups_init() 
-        {
-            rootEntry = new GroupEntry("root");
-            treeViewManager = new TreeViewManager(twGroups);
-            treeViewManager.InsertTreeNode(rootEntry);
-        }
+
         public class TreeViewManager
         {
             private TreeView _treeView;
-
             public TreeViewManager(TreeView treeView)
             {
                 _treeView = treeView;
@@ -143,7 +172,6 @@ namespace PasswordManager
                     }
                 }
             }
-
             public void InsertTreeNode(GroupEntry newGroupEntry, TreeNode parentNode = null)
             {
 
@@ -156,7 +184,7 @@ namespace PasswordManager
                     // Добавляем новый узел в коллекцию узлов родительского узла
                     _treeView.Nodes.Add(newNode);
                 }
-                else 
+                else
                 {
                     // Добавляем новый GroupEntry в коллекцию Children родительского GroupEntry
                     var parentEntry = parentNode.Tag as GroupEntry;
@@ -164,25 +192,14 @@ namespace PasswordManager
                     parentNode.Nodes.Add(newNode);
                 }
             }
-
-
-            public void Override(GroupEntry groupEntry) 
+            public void Override(GroupEntry groupEntry)
             {
                 _treeView.Nodes.Clear();
                 AddGroupEntry(groupEntry, null);
             }
-        }
-        private void btnPlus_Click(object sender, EventArgs e)
-        {
-            using (AddGroupForm inputDialog = new AddGroupForm())
+            public TreeNode getSelectedNode() 
             {
-                if (inputDialog.ShowDialog() == DialogResult.OK)
-                {
-                    // Получаем выбранный узел и добавляем туда новую запись, с именем из диалогового окна
-                    TreeNode selectedNode = twGroups.SelectedNode;
-                    treeViewManager.InsertTreeNode(new GroupEntry(inputDialog.groupName),
-                        (selectedNode != null) ? selectedNode : null);
-                }
+                return _treeView.SelectedNode;
             }
         }
         private void twGroups_AfterSelect(object sender, TreeViewEventArgs e)
@@ -201,50 +218,41 @@ namespace PasswordManager
                 if (selectedGroup != null)
                 {
                     // Вызов метода PopulateListView с соответствующим списком AccountEntry
-                    PopulateListView(selectedGroup.GetAccountEntries());
+                    listViewManager.setNewGroup(selectedGroup);
+                }
+            }
+        }
+        private void twGroups_init() 
+        {
+            rootEntry = new GroupEntry("root");
+            treeViewManager = new TreeViewManager(twGroups);
+            treeViewManager.InsertTreeNode(rootEntry);
+        }
+        private void btnPlus_Click(object sender, EventArgs e)
+        {
+            using (AddGroupForm inputDialog = new AddGroupForm())
+            {
+                if (inputDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Получаем выбранный узел и добавляем туда новую запись, с именем из диалогового окна
+                    TreeNode selectedNode = twGroups.SelectedNode;
+                    treeViewManager.InsertTreeNode(new GroupEntry(inputDialog.groupName),
+                        (selectedNode != null) ? selectedNode : null);
                 }
             }
         }
         #endregion
-
-        #region lwAccounts
-        public void PopulateListView(List<AccountEntry> accountEntries)
-        {
-            // Очистка ListView перед добавлением новых данных
-            lwAccounts.Items.Clear();
-
-            if (accountEntries == null)
-            {
-                // Добавление сообщения о пустом списке в ListView
-                ListViewItem emptyItem = new ListViewItem("No entries found");
-                lwAccounts.Items.Add(emptyItem);
-                return;
-            }
-
-            // Проход по списку AccountEntry и добавление данных в ListView
-            foreach (AccountEntry entry in accountEntries)
-            {
-                // Создание новой строки для ListView
-                ListViewItem item = new ListViewItem(entry.accountName);
-
-                // Добавление логина во вторую колонку
-                item.SubItems.Add(entry.login);
-
-                // Добавление пароля в третью колонку
-                item.SubItems.Add("********");
-
-                // Установка Tag в качестве ссылки на соответствующий объект AccountEntry
-                item.Tag = entry;
-
-                // Добавление строки в ListView
-                lwAccounts.Items.Add(item);
-            }
-        }
         private void btnAdd_Click(object sender, EventArgs e)
         {
-
+            using (AddAccountForm addAccountForm = new AddAccountForm(key))
+            {
+                if (addAccountForm.ShowDialog() == DialogResult.OK)
+                {
+                    listViewManager.AddAccountEntry(addAccountForm.account);
+                }
+            }
         }
-        #endregion
+
         private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -261,6 +269,15 @@ namespace PasswordManager
             }
         }
 
-
+        private void lwAccounts_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (lwAccounts.SelectedItems.Count > 0)
+            {
+                    ListViewItem selectedItem = lwAccounts.SelectedItems[0];
+                    // Получаем объект из свойства Tag выбранного элемента
+                    var selectedObject = selectedItem.Tag as AccountEntry;
+                    selectedObject.password.CopyPasswordToClipboard(3000);
+            }
+        }
     }
 }

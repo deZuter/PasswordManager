@@ -7,10 +7,10 @@ using System.Windows.Forms;
 
 namespace PasswordManager
 {
-    public class GroupEntry : IGroupEntry
+    public class GroupEntry
     {
         public List<GroupEntry> groupList;
-        public List<AccountEntry> accountEntries;
+        private List<AccountEntry> accountEntries;
         public string name;
 
         public GroupEntry(string name) 
@@ -20,7 +20,7 @@ namespace PasswordManager
             this.accountEntries = new List<AccountEntry>();
         }
 
-        public void addPasswordEntry(AccountEntry accountEntry) 
+        public void addAccountEntry(AccountEntry accountEntry) 
         {
             accountEntries.Add(accountEntry);
         }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PasswordManager.Classes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,15 +16,20 @@ namespace PasswordManager
         ///<Summary>
         ///Конструктор класса, который принимает на вход пароль, логин (дополнительные поля добавляются по обращению к индексу)
         ///</Summary>
-        AccountEntry(string login, string password, string masterKey)
+        public AccountEntry(string name, string login, string password, MasterKey key)
         {
+            this.accountName = name;
             this.login = login;
-            this.password = new Password(password, masterKey);
+            this.password = new Password(password, key);
             password = null;
-            masterKey = null;
-            Properties = new Dictionary<string, string>();
+            this.Properties = new Dictionary<string, string>();
         }
-        
+
+        ///<Summary>
+        ///Название аккаунта
+        ///</Summary>
+        public string accountName;
+
         ///<Summary>
         ///Логин приложения (мб почта или еще что нибудь)
         ///</Summary>
@@ -32,12 +38,8 @@ namespace PasswordManager
         ///<Summary>
         ///Сам пароль, который внутри уже сам шифруется у себя
         ///</Summary>
-        private Password password;
+        public Password password;
 
-        ///<Summary>
-        ///Название аккаунта
-        ///</Summary>
-        public string accountName;
         ///<Summary>
         ///Словарь хранит в себе динамически расширяемые значения полей
         ///</Summary>

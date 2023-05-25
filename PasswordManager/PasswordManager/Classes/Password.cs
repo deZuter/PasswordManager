@@ -8,23 +8,27 @@ using Newtonsoft.Json.Linq;
 using System.Timers;
 using Timer = System.Timers.Timer;
 using System.Security.Cryptography.Xml;
-
+using PasswordManager.Classes;
+using System.Threading;
 
 namespace PasswordManager
 {
     public class Password
     {
-        byte[] password_masterKey;  //Единственное, что изначально необходимо для создания пароля (и сам пароль).
-
+        byte[] password_masterKey;
+        int password_masterKey_len;
         byte[] encryptedPassword;
+        int encryptedPassword_len;
         byte[] password_salt;
+        int password_salt_len;
         byte[] password_IV;
+        int password_IV_len;
+        const int blockSize = 16;
 
-        public Password(string password, string masterKey) 
+        public Password(string password, MasterKey key) 
         {
-            setPassword(password, masterKey);
+            setPassword(password, key);
         }
-
         public Password(JObject jsonPassword) 
         {
             if (jsonPassword == null)
@@ -53,14 +57,34 @@ namespace PasswordManager
             encryptedPassword = Convert.FromBase64String(encryptedPasswordToken.Value<string>());
             ProtectPasswordValuesInOperationalMemory();
         }
+        private byte[] AlignToBlockSize(byte[] data)
+        {
+            int paddingSize = blockSize - (data.Length % blockSize);
+            byte[] alignedData = new byte[data.Length + paddingSize];
+            Array.Copy(data, alignedData, data.Length);
+            return alignedData;
+        }
+        private byte[] RestoreOriginalLength(byte[] data, int originalLength)
+        {
+            if (data.Length == originalLength)
+            {
+                return data; // Если длина уже соответствует исходной, возвращаем массив без изменений
+            }
 
+            byte[] restoredData = new byte[originalLength];
+            Array.Copy(data, restoredData, originalLength);
+            return restoredData;
+        }
         private void ProtectPasswordValuesInOperationalMemory() 
         {
-            ProtectedMemory.Protect(encryptedPassword, MemoryProtectionScope.SameLogon);    //вся информация о пароле, находящаяся в оперативной памяти
-            ProtectedMemory.Protect(password_salt, MemoryProtectionScope.SameLogon);        //находится в относительной безопасности благодаря технологии
-            ProtectedMemory.Protect(password_IV, MemoryProtectionScope.SameLogon);          //Microsoft ProtectedMemory
+            encryptedPassword = AlignToBlockSize(encryptedPassword);
+            password_salt = AlignToBlockSize(password_salt);
+            password_IV = AlignToBlockSize(password_IV);
+            password_masterKey = AlignToBlockSize(password_masterKey);
+            ProtectedMemory.Protect(encryptedPassword, MemoryProtectionScope.SameLogon);
+            ProtectedMemory.Protect(password_salt, MemoryProtectionScope.SameLogon);     
+            ProtectedMemory.Protect(password_IV, MemoryProtectionScope.SameLogon);      
             ProtectedMemory.Protect(password_masterKey, MemoryProtectionScope.SameLogon);
-
         }
         private void UnprotectPasswordValuesInOperationalMemory()
         {
@@ -68,11 +92,15 @@ namespace PasswordManager
             ProtectedMemory.Unprotect(password_salt, MemoryProtectionScope.SameLogon);        
             ProtectedMemory.Unprotect(password_IV, MemoryProtectionScope.SameLogon);          
             ProtectedMemory.Unprotect(password_masterKey, MemoryProtectionScope.SameLogon);
+            encryptedPassword = RestoreOriginalLength(encryptedPassword, encryptedPassword_len);
+            password_salt = RestoreOriginalLength(password_salt, password_salt_len);
+            password_IV = RestoreOriginalLength(password_IV, password_IV_len);
+            password_masterKey = RestoreOriginalLength(password_masterKey, password_masterKey_len);
         }
 
-        private void setPassword(string password, string masterKey)
+        private void setPassword(string password, MasterKey key)
         {
-            if (password == null || password.Length == 0 || masterKey == null || masterKey.Length == 0)
+            if (password == null || password.Length == 0 || key == null || key._keyLen == 0)
             {
                 throw new ArgumentNullException();
             }
@@ -89,8 +117,9 @@ namespace PasswordManager
                 aes.BlockSize = 128;
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.ISO10126;
-
-                var keyGenerator = new Rfc2898DeriveBytes(masterKey, salt, 1000);
+                key.unprotectKey();
+                var keyGenerator = new Rfc2898DeriveBytes(key.getKey(), salt, 1000);
+                key.protectKey();
                 aes.Key = keyGenerator.GetBytes(aes.KeySize / 8);   //Здесь генерируется Key для пароля
                 aes.IV = keyGenerator.GetBytes(aes.BlockSize / 8);  //Здесь генерируется IV для пароля
 
@@ -99,9 +128,13 @@ namespace PasswordManager
                 {
                     byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);   
                     encryptedPassword = encryptor.TransformFinalBlock(passwordBytes, 0, passwordBytes.Length);  //тут шифруется сам пароль с помощью сгенерированных значений
+                    encryptedPassword_len = encryptedPassword.Length;
                     password_salt = salt;
+                    password_salt_len = password_salt.Length;
                     password_IV = aes.IV;
-                    password_masterKey = Encoding.UTF8.GetBytes(masterKey);
+                    password_IV_len = password_IV.Length;
+                    password_masterKey = aes.Key;
+                    password_masterKey_len = password_masterKey.Length;
                     ProtectPasswordValuesInOperationalMemory();
                     Array.Clear(aes.Key, 0, aes.Key.Length);
                     Array.Clear(aes.IV, 0, aes.IV.Length);
@@ -120,8 +153,6 @@ namespace PasswordManager
             if (password_IV == null || password_IV.Length == 0)
                 throw new ArgumentNullException(nameof(password_IV));
 
-            UnprotectPasswordValuesInOperationalMemory();
-
             using (var aes = new AesManaged())
             {
                 aes.KeySize = password_masterKey.Length * 8;
@@ -129,8 +160,7 @@ namespace PasswordManager
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.ISO10126;
 
-                var keyGenerator = new Rfc2898DeriveBytes(password_masterKey, password_salt, 1000);
-                aes.Key = keyGenerator.GetBytes(aes.KeySize / 8);
+                aes.Key = password_masterKey;
                 aes.IV = password_IV;
 
                 using (var decryptor = aes.CreateDecryptor())
@@ -143,20 +173,24 @@ namespace PasswordManager
         }
 
         // Копируем пароль в буфер обмена и запускаем таймер
-        public void CopyPasswordToClipboard(Timer clearClipboardTimer)
+        private Thread clipboardThread;
+        public void CopyPasswordToClipboard(int interval)
         {
-            Clipboard.SetText(getPassword());
-            clearClipboardTimer.Elapsed += ClearClipboardTimer_Elapsed;
-            clearClipboardTimer.AutoReset = false;
-            clearClipboardTimer.Start();
-        }
+            clipboardThread = new Thread(() =>
+            {
+                Timer clearClipboardTimer = new Timer();
+                clearClipboardTimer.Interval = interval;
+                UnprotectPasswordValuesInOperationalMemory();
+                Clipboard.SetText(getPassword());
+                ProtectPasswordValuesInOperationalMemory();
+                Thread.Sleep(interval);
+                Clipboard.Clear();
+                clipboardThread.Abort();
+            });
+            clipboardThread.SetApartmentState(ApartmentState.STA);
+            clipboardThread.Start();
 
-        // Очищаем буфер обмена после истечения времени таймера
-        private void ClearClipboardTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            Clipboard.Clear();
         }
-
         public JObject getJsonPassword() 
         {
             UnprotectPasswordValuesInOperationalMemory();
