@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using PasswordManager.Classes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,17 +8,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PasswordManager
+namespace PasswordManager.Classes
 {
-    public class FileEncryption : IDisposable
+    public class FileEncryptor : IDisposable
     {
-        public JObject LoadEncryptedFile(string filePath, byte[] key, int keylen) 
-        {
-            ArraySegment<byte> segment = new ArraySegment<byte>(key, 0, keylen - 1);
-            return DecryptJsonFile(filePath, segment.Array);
-        }
-
-        public static void EncryptAndSaveToFile(JObject jsonObj, string masterKey, string filePath)
+        public static void EncryptAndSaveToFile(JObject jsonObj, MasterKey key, string filePath)
         {
             // Сериализуем JObject в строку JSON
             string jsonStr = jsonObj.ToString();
@@ -25,7 +20,9 @@ namespace PasswordManager
             // Создаем новый экземпляр класса AES, используя мастер-ключ в качестве ключа
             using (Aes aes = Aes.Create())
             {
-                aes.Key = Encoding.UTF8.GetBytes(masterKey);
+                key.unprotectKey();
+                aes.Key = key.getKey();
+                key.protectKey();
                 aes.IV = new byte[16]; // Начальное значение IV должно быть случайным
 
                 // Создаем объект Encryptor для AES, используя ключ и IV
@@ -47,10 +44,11 @@ namespace PasswordManager
                 }
             }
         }
-        public static JObject DecryptJsonFile(string filePath, byte[] masterKey)
+
+        public static JObject DecryptJsonFile(string filePath, MasterKey key)
         {
             byte[] encryptedData = File.ReadAllBytes(filePath);
-            byte[] iv = new byte[8];
+            byte[] iv = new byte[16];
             byte[] encryptedContent = new byte[encryptedData.Length - iv.Length];
 
             Buffer.BlockCopy(encryptedData, 0, iv, 0, iv.Length);
@@ -58,7 +56,9 @@ namespace PasswordManager
 
             using (var aes = Aes.Create())
             {
-                aes.Key = masterKey;
+                key.unprotectKey();
+                aes.Key = key.getKey();
+                key.protectKey();
                 aes.IV = iv;
 
                 using (var decryptor = aes.CreateDecryptor())

@@ -1,4 +1,5 @@
-﻿using PasswordManager.Classes;
+﻿using Newtonsoft.Json;
+using PasswordManager.Classes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,15 +17,26 @@ namespace PasswordManager
         ///<Summary>
         ///Конструктор класса, который принимает на вход пароль, логин (дополнительные поля добавляются по обращению к индексу)
         ///</Summary>
-        public AccountEntry(string name, string login, string password, MasterKey key)
+        public AccountEntry(string accountName, string login, string password, MasterKey key)
         {
-            this.accountName = name;
+            this.accountName = accountName;
             this.login = login;
             this.password = new Password(password, key);
             password = null;
             this.Properties = new Dictionary<string, string>();
         }
 
+        ///<Summary>
+        ///Конструктор класса для Json
+        ///</Summary>
+        [JsonConstructor]
+        public AccountEntry(string accountName, string login, string password)
+        {
+            this.accountName = accountName;
+            this.login = login;
+            this.password = JsonConvert.DeserializeObject<Password>(password); ;
+            this.Properties = new Dictionary<string, string>();
+        }
         ///<Summary>
         ///Название аккаунта
         ///</Summary>
@@ -38,11 +50,21 @@ namespace PasswordManager
         ///<Summary>
         ///Сам пароль, который внутри уже сам шифруется у себя
         ///</Summary>
+        [JsonIgnore]
         public Password password;
 
         ///<Summary>
+        ///Необходимо для верного парсинга
+        ///</Summary>
+        [JsonProperty("Password")]
+        private string SerializedPassword
+        {
+            get { return password.getJsonPassword(); }
+        }
+        ///<Summary>
         ///Словарь хранит в себе динамически расширяемые значения полей
         ///</Summary>
+        [JsonProperty]
         private Dictionary<string, string> Properties { get; set; }
 
         ///<Summary>

@@ -51,10 +51,12 @@
             this.btnAdd = new System.Windows.Forms.Button();
             this.btnDeleteAccount = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tsStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tslblAccountsCount = new System.Windows.Forms.ToolStripStatusLabel();
             this.lwAccounts = new System.Windows.Forms.ListView();
             this.btnPlus = new System.Windows.Forms.Button();
             this.btnMinus = new System.Windows.Forms.Button();
+            this.btnSave = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -228,18 +230,25 @@
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(18, 18);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1});
+            this.tsStatus,
+            this.tslblAccountsCount});
             this.statusStrip1.Location = new System.Drawing.Point(0, 430);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(609, 24);
             this.statusStrip1.TabIndex = 6;
             this.statusStrip1.Text = "statusStrip1";
             // 
-            // toolStripStatusLabel1
+            // tsStatus
             // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(83, 19);
-            this.toolStripStatusLabel1.Text = "Состояние: ";
+            this.tsStatus.Name = "tsStatus";
+            this.tsStatus.Size = new System.Drawing.Size(83, 19);
+            this.tsStatus.Text = "Состояние: ";
+            // 
+            // tslblAccountsCount
+            // 
+            this.tslblAccountsCount.Name = "tslblAccountsCount";
+            this.tslblAccountsCount.Size = new System.Drawing.Size(65, 19);
+            this.tslblAccountsCount.Text = "Accounts";
             // 
             // lwAccounts
             // 
@@ -271,11 +280,22 @@
             this.btnMinus.Text = "-";
             this.btnMinus.UseVisualStyleBackColor = true;
             // 
+            // btnSave
+            // 
+            this.btnSave.Location = new System.Drawing.Point(12, 37);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(75, 23);
+            this.btnSave.TabIndex = 10;
+            this.btnSave.Text = "Сохранить";
+            this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(609, 454);
+            this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnMinus);
             this.Controls.Add(this.btnPlus);
             this.Controls.Add(this.lwAccounts);
@@ -286,10 +306,12 @@
             this.Controls.Add(this.twGroups);
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.KeyPreview = true;
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "Passwd";
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
@@ -323,10 +345,12 @@
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.Button btnDeleteAccount;
         private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.ToolStripStatusLabel tsStatus;
         private System.Windows.Forms.ListView lwAccounts;
         private System.Windows.Forms.Button btnPlus;
         private System.Windows.Forms.Button btnMinus;
+        private System.Windows.Forms.ToolStripStatusLabel tslblAccountsCount;
+        private System.Windows.Forms.Button btnSave;
     }
 }
 

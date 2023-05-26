@@ -4,6 +4,8 @@ using PasswordManager.Forms;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Text;
+using System.Globalization;
 using System.Windows.Forms;
 using Timer = System.Timers.Timer;
 
@@ -11,16 +13,10 @@ namespace PasswordManager
 {
     public partial class MainForm : Form
     {
-        byte[] paddedKey;
-        int blockSize = 16;
-        int keyLen;
-
         MasterKey key;
-
-
+        Config config;
         public MainForm()
         {
-            string key = null;
             using (LoginForm inputDialog = new LoginForm())
             {
                 if (inputDialog.ShowDialog() == DialogResult.OK)
@@ -33,6 +29,7 @@ namespace PasswordManager
                     this.Close();
                 }
             }
+            config = FileManager.LoadOrCreateConfig();
             InitializeComponent();
         }
 
@@ -46,7 +43,7 @@ namespace PasswordManager
         #region lwAccounts
         private void lwAccounts_init()
         {
-            listViewManager = new ListViewManager(lwAccounts);
+            listViewManager = new ListViewManager(lwAccounts, tslblAccountsCount);
         }
 
         ListViewManager listViewManager;
@@ -54,7 +51,8 @@ namespace PasswordManager
         {
             private ListView _lwAccounts;
             private GroupEntry _groupEntry;
-            public ListViewManager(ListView listView)
+            private ToolStripLabel _lblAccountsCount;
+            public ListViewManager(ListView listView, ToolStripLabel lblAccountsCount)
             {
                 this._lwAccounts = listView;
                 _lwAccounts.Columns.Add("Название", 150);
@@ -63,6 +61,7 @@ namespace PasswordManager
                 _lwAccounts.View = View.Details;
                 _lwAccounts.Scrollable = true;
                 _lwAccounts.HeaderStyle = ColumnHeaderStyle.Clickable;
+                _lblAccountsCount = lblAccountsCount;
             }
             public void AddAccountEntry(AccountEntry account)
             {
@@ -85,6 +84,7 @@ namespace PasswordManager
                     // Добавление сообщения о пустом списке в ListView
                     ListViewItem emptyItem = new ListViewItem("No entries found");
                     _lwAccounts.Items.Add(emptyItem);
+                    _lblAccountsCount.Text = "0 aккаунт(ов)";
                     return;
                 }
                 // Проход по списку AccountEntry и добавление данных в ListView
@@ -105,6 +105,7 @@ namespace PasswordManager
                     // Добавление строки в ListView
                     _lwAccounts.Items.Add(item);
                 }
+                _lblAccountsCount.Text =_lwAccounts.Items.Count.ToString() + " aккаунт(ов)";
             }
         }
 
@@ -259,13 +260,13 @@ namespace PasswordManager
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 string selectedFile = openFileDialog.FileName;
-                JObject json = new JObject();
-                using (var fileEncryptor = new FileEncryption()) 
+                rootEntry = FileManager.LoadEncryptedFile(selectedFile, key);
+                if (rootEntry == null) 
                 {
-                    json = fileEncryptor.LoadEncryptedFile(selectedFile, paddedKey, keyLen);
+                    return;
                 }
-                rootEntry = json.ToObject<GroupEntry>();
                 treeViewManager.Override(rootEntry);
+                listViewManager.setNewGroup(rootEntry);
             }
         }
 
@@ -278,6 +279,20 @@ namespace PasswordManager
                     var selectedObject = selectedItem.Tag as AccountEntry;
                     selectedObject.password.CopyPasswordToClipboard(3000);
             }
+        }
+
+
+        //обработка горячих клавиш
+        private void MainForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control && e.KeyCode == Keys.S)       // Ctrl-S Save
+            {
+                FileManager.SaveDbToFile(rootEntry, config.DatabaseDirectory + "\\root", key);
+            }
+        }
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            FileManager.SaveDbToFile(rootEntry, config.DatabaseDirectory + "\\root", key);
         }
     }
 }

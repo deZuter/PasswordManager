@@ -15,48 +15,51 @@ namespace PasswordManager
 {
     public class Password
     {
+        //отдельно указывать длину каждого поля необходимо для функции Protect и unprotect (тк в оперативке оказывается защита памяти идет блоками по 16 байт)
+        [JsonProperty]
         byte[] password_masterKey;
+        [JsonProperty]
         int password_masterKey_len;
+        [JsonProperty]
         byte[] encryptedPassword;
+        [JsonProperty]
         int encryptedPassword_len;
+        [JsonProperty]
         byte[] password_salt;
+        [JsonProperty]
         int password_salt_len;
+        [JsonProperty]
         byte[] password_IV;
+        [JsonProperty]
         int password_IV_len;
+        [JsonProperty]
         const int blockSize = 16;
 
         public Password(string password, MasterKey key) 
         {
             setPassword(password, key);
         }
-        public Password(JObject jsonPassword) 
+
+        ///<Summary>
+        ///Конструктор класса для Json
+        ///</Summary>
+        [JsonConstructor]
+        private Password(byte[] password_masterKey,int password_masterKey_len,
+            byte[] encryptedPassword,             int encryptedPassword_len, 
+            byte[] password_salt,                 int password_salt_len,
+            byte[] password_IV,                   int password_IV_len) 
         {
-            if (jsonPassword == null)
-            {
-                throw new ArgumentNullException(nameof(jsonPassword));
-            }
-            var ivToken = jsonPassword["IV"];
-            if (ivToken == null || ivToken.Type != JTokenType.String)
-            {
-                throw new ArgumentException("Invalid IV in encrypted password JSON.");
-            }
-            password_IV = Convert.FromBase64String(ivToken.Value<string>());
-
-            var saltToken = jsonPassword["Salt"];
-            if (saltToken == null || saltToken.Type != JTokenType.String)
-            {
-                throw new ArgumentException("Invalid salt in encrypted password JSON.");
-            }
-            password_salt = Convert.FromBase64String(saltToken.Value<string>());
-
-            var encryptedPasswordToken = jsonPassword["Data"];
-            if (encryptedPasswordToken == null || encryptedPasswordToken.Type != JTokenType.String)
-            {
-                throw new ArgumentException("Invalid encrypted password in encrypted password JSON.");
-            }
-            encryptedPassword = Convert.FromBase64String(encryptedPasswordToken.Value<string>());
+            this.password_masterKey = password_masterKey;
+            this.password_masterKey_len = password_masterKey_len;
+            this.encryptedPassword = encryptedPassword;
+            this.encryptedPassword_len = encryptedPassword_len;
+            this.password_salt = password_salt;
+            this.password_salt_len = password_salt_len;
+            this.password_IV = password_IV;
+            this.password_IV_len = password_IV_len;
             ProtectPasswordValuesInOperationalMemory();
         }
+
         private byte[] AlignToBlockSize(byte[] data)
         {
             int paddingSize = blockSize - (data.Length % blockSize);
@@ -88,7 +91,7 @@ namespace PasswordManager
         }
         private void UnprotectPasswordValuesInOperationalMemory()
         {
-            ProtectedMemory.Unprotect(encryptedPassword, MemoryProtectionScope.SameLogon);    
+            ProtectedMemory.Unprotect(encryptedPassword, MemoryProtectionScope.SameLogon);
             ProtectedMemory.Unprotect(password_salt, MemoryProtectionScope.SameLogon);        
             ProtectedMemory.Unprotect(password_IV, MemoryProtectionScope.SameLogon);          
             ProtectedMemory.Unprotect(password_masterKey, MemoryProtectionScope.SameLogon);
@@ -97,7 +100,6 @@ namespace PasswordManager
             password_IV = RestoreOriginalLength(password_IV, password_IV_len);
             password_masterKey = RestoreOriginalLength(password_masterKey, password_masterKey_len);
         }
-
         private void setPassword(string password, MasterKey key)
         {
             if (password == null || password.Length == 0 || key == null || key._keyLen == 0)
@@ -171,7 +173,6 @@ namespace PasswordManager
                 }
             }
         }
-
         // Копируем пароль в буфер обмена и запускаем таймер
         private Thread clipboardThread;
         public void CopyPasswordToClipboard(int interval)
@@ -191,14 +192,12 @@ namespace PasswordManager
             clipboardThread.Start();
 
         }
-        public JObject getJsonPassword() 
+        public string getJsonPassword() 
         {
             UnprotectPasswordValuesInOperationalMemory();
-            JObject passwordJson = new JObject();
-            passwordJson["IV"] = Convert.ToBase64String(password_IV);
-            passwordJson["Salt"] = Convert.ToBase64String(password_salt);
-            passwordJson["Data"] = Convert.ToBase64String(encryptedPassword);
-            return passwordJson;
+            string jPass = JsonConvert.SerializeObject(this);
+            ProtectPasswordValuesInOperationalMemory();
+            return jPass;
         }
     }
 }
