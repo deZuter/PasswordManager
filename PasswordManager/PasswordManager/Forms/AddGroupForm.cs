@@ -16,6 +16,7 @@ namespace PasswordManager.Forms
         public AddGroupForm()
         {
             InitializeComponent();
+            this.StartPosition = FormStartPosition.CenterScreen;
         }
 
         private void btnCancel_Click(object sender, EventArgs e)

@@ -14,12 +14,13 @@ namespace PasswordManager.Forms
         public AboutProgramForm()
         {
             InitializeComponent();
+            this.StartPosition = FormStartPosition.CenterScreen;
             this.Text = String.Format("About {0}", AssemblyTitle);
-            this.labelProductName.Text = AssemblyProduct;
+            this.labelProductName.Text = "Passwd - Менеджер паролей";
             this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
-            this.labelCopyright.Text = AssemblyCopyright;
-            this.labelCompanyName.Text = AssemblyCompany;
-            this.textBoxDescription.Text = AssemblyDescription;
+            this.labelCopyright.Text = "Создатель: Лобанов Дмитрий";
+            this.labelCompanyName.Text = "ПГУ, факультет вычислительной техники";
+            this.textBoxDescription.Text = "Менеджер паролей предназначен для безопасного хранения паролей локально и управления базой паролей";
         }
 
         #region Assembly Attribute Accessors

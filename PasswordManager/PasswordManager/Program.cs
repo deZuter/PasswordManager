@@ -21,9 +21,9 @@ namespace PasswordManager
             {
                 Application.Run(new MainForm());
             }
-            catch 
+            catch (Exception ex)
             {
-                return;
+                MessageBox.Show("Произошла какая-то ошибка. Свяжитесь с разработчиком dvlob@yandex.ru и напишите: " + ex.Message, "Ой!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
         }

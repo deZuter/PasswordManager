@@ -8,6 +8,14 @@ namespace PasswordManager.Classes
 {
     public class Config
     {
-        public string DatabaseDirectory { get; set; }
+        public string databaseDirectory { get; set; }
+        public string lastDbName { get; set; }
+        public string pathWithName 
+        {
+            get 
+            {
+                return databaseDirectory + "\\" + lastDbName;
+            }
+        }
     }
 }

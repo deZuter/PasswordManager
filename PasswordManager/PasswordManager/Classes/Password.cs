@@ -13,8 +13,9 @@ using System.Threading;
 
 namespace PasswordManager
 {
-    public class Password
+    public class Password : IDisposable
     {
+       
         //отдельно указывать длину каждого поля необходимо для функции Protect и unprotect (тк в оперативке оказывается защита памяти идет блоками по 16 байт)
         [JsonProperty]
         byte[] password_masterKey;
@@ -179,14 +180,23 @@ namespace PasswordManager
         {
             clipboardThread = new Thread(() =>
             {
-                Timer clearClipboardTimer = new Timer();
-                clearClipboardTimer.Interval = interval;
-                UnprotectPasswordValuesInOperationalMemory();
-                Clipboard.SetText(getPassword());
-                ProtectPasswordValuesInOperationalMemory();
-                Thread.Sleep(interval);
-                Clipboard.Clear();
-                clipboardThread.Abort();
+                try
+                {
+                    Clipboard.Clear();
+                    Timer clearClipboardTimer = new Timer();
+                    clearClipboardTimer.Interval = interval;
+                    UnprotectPasswordValuesInOperationalMemory();
+                    Clipboard.SetText(getPassword());
+                    ProtectPasswordValuesInOperationalMemory();
+                    Thread.Sleep(interval);
+                    Clipboard.Clear();
+                    clipboardThread.Abort();
+                }
+                catch 
+                {
+                    clipboardThread.Abort();
+                }
+
             });
             clipboardThread.SetApartmentState(ApartmentState.STA);
             clipboardThread.Start();
@@ -198,6 +208,13 @@ namespace PasswordManager
             string jPass = JsonConvert.SerializeObject(this);
             ProtectPasswordValuesInOperationalMemory();
             return jPass;
+        }
+
+        public void Dispose()
+        {
+            this.encryptedPassword = null;
+            this.password_masterKey = null;
+            if(clipboardThread!=null) clipboardThread.Abort();
         }
     }
 }

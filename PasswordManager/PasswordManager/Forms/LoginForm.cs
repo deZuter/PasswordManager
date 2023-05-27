@@ -13,24 +13,65 @@ namespace PasswordManager.Forms
     public partial class LoginForm : Form
     {
         public string key;
-        public LoginForm()
+        private string _fileName;
+        public string FileName {
+            get 
+            {
+                return _fileName;
+            }
+            set
+            {
+                _fileName = value;
+                txtFileName.Text = value;
+            }
+        }
+        public LoginForm(string fileName = null, bool showNewDbButton = true)
         {
             InitializeComponent();
+            this.StartPosition = FormStartPosition.CenterScreen;
+            if (showNewDbButton == false)
+            {
+                btnNewDB.Enabled = false;
+            }
+            if (fileName != null)
+            {
+                this.FileName = fileName;
+            }
         }
 
         private void btnOk_Click(object sender, EventArgs e)
         {
-            if (txtfldKey.Text.Length == 0) 
+            if (txtKey.TextLength == 0 || txtFileName.TextLength == 0) 
             {
                 return;
             }
-            this.key = txtfldKey.Text;
+            this.key = txtKey.Text;
             DialogResult = DialogResult.OK;
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            this.Close();
+            DialogResult = DialogResult.Cancel;
+        }
+
+        private void btnNewDB_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Yes;
+        }
+
+        private void btnPath_Click(object sender, EventArgs e)
+        {
+            // Создание экземпляра диалогового окна выбора пути до директории
+            using (var fileDialog = new OpenFileDialog())
+            {
+                DialogResult result = fileDialog.ShowDialog();
+                // Отображение диалогового окна и проверка результата
+                if (result == DialogResult.OK)
+                {
+                    // Получение выбранного пути до директории
+                    this.FileName = fileDialog.SafeFileName.ToString();
+                }
+            }
         }
     }
 }

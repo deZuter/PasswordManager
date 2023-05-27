@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -13,10 +14,16 @@ namespace PasswordManager.Classes
 {
     public class FileManager
     {
+
+        private const string configFilePath = "passwdConfig.cfg";
+        public static GroupEntry LoadDb(string filePath, MasterKey key) 
+        {
+            return LoadEncryptedFile(filePath, key);
+        } 
         public static GroupEntry LoadEncryptedFile(string filePath, MasterKey key)
         {
             var jObject = FileEncryptor.DecryptJsonFile(filePath, key);
-            
+
             var groupEntry = new JsonGroupEntryParser().JObjectToGroupEntry(jObject);
             return groupEntry;
         }
@@ -25,10 +32,8 @@ namespace PasswordManager.Classes
             var json = new JsonGroupEntryParser().GroupEntryToJObject(groupEntry);
             FileEncryptor.EncryptAndSaveToFile(json, key, filePath);
         }
-        public static Config LoadOrCreateConfig() 
+        public static Config LoadOrCreateConfig()
         {
-            const string configFilePath = "passwdConfig.cfg";
-
             if (File.Exists(configFilePath))
             {
                 // Файл конфигурации уже существует, считываем его содержимое
@@ -53,11 +58,16 @@ namespace PasswordManager.Classes
                     }
                 }
                 Config config = new Config();
-                config.DatabaseDirectory = selectedPath;
+                config.databaseDirectory = selectedPath;
                 string configJson = JsonConvert.SerializeObject(config);
                 File.WriteAllText(configFilePath, configJson);
                 return config;
             }
+        }
+        public static void SaveConfigFile(Config config)
+        {
+            string configJson = JsonConvert.SerializeObject(config);
+            File.WriteAllText(configFilePath, configJson);
         }
     }
 }

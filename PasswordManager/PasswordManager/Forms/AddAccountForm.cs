@@ -21,6 +21,7 @@ namespace PasswordManager.Forms
             this.key = key;
             account = null;
             InitializeComponent();
+            this.StartPosition = FormStartPosition.CenterScreen;
             txtPassword.UseSystemPasswordChar = true;
             // Установка шрифта кнопки, поддерживающего символы Unicode
             btnShowPassword.Font = new Font("Segoe UI Emoji", 8);
@@ -60,6 +61,11 @@ namespace PasswordManager.Forms
 
         private void btnOk_Click(object sender, EventArgs e)
         {
+            if (txtPassword.TextLength == 0 || txtAccountName.TextLength == 0) 
+            {
+                MessageBox.Show("Поле Пароль и Название аккаунта должны быть заполнены", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             account = new AccountEntry(txtAccountName.Text, txtLogin.Text, txtPassword.Text, key);
             //groupName = txtGroupName.Text;
             DialogResult = DialogResult.OK;

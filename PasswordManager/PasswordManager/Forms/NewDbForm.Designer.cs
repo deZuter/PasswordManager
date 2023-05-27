@@ -33,8 +33,8 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.lblName = new System.Windows.Forms.Label();
             this.lblMasterKey = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.txtName = new System.Windows.Forms.TextBox();
+            this.txtMasterKey = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // btnOk
@@ -75,34 +75,34 @@
             this.lblMasterKey.TabIndex = 3;
             this.lblMasterKey.Text = "Мастер-ключ";
             // 
-            // textBox1
+            // txtName
             // 
-            this.textBox1.Location = new System.Drawing.Point(12, 25);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(255, 20);
-            this.textBox1.TabIndex = 4;
+            this.txtName.Location = new System.Drawing.Point(12, 25);
+            this.txtName.Name = "txtName";
+            this.txtName.Size = new System.Drawing.Size(255, 20);
+            this.txtName.TabIndex = 4;
             // 
-            // textBox2
+            // txtMasterKey
             // 
-            this.textBox2.Location = new System.Drawing.Point(12, 64);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(255, 20);
-            this.textBox2.TabIndex = 5;
+            this.txtMasterKey.Location = new System.Drawing.Point(12, 64);
+            this.txtMasterKey.Name = "txtMasterKey";
+            this.txtMasterKey.Size = new System.Drawing.Size(255, 20);
+            this.txtMasterKey.TabIndex = 5;
             // 
             // NewDbForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(279, 124);
-            this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.txtMasterKey);
+            this.Controls.Add(this.txtName);
             this.Controls.Add(this.lblMasterKey);
             this.Controls.Add(this.lblName);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOk);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "NewDbForm";
-            this.Text = "Новая база паролей";
+            this.Text = "Passwd";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -114,7 +114,7 @@
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Label lblName;
         private System.Windows.Forms.Label lblMasterKey;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox txtName;
+        private System.Windows.Forms.TextBox txtMasterKey;
     }
 }

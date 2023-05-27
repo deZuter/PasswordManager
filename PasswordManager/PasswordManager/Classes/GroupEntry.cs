@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace PasswordManager
 {
-    public class GroupEntry
+    public class GroupEntry : IDisposable
     {
         public List<GroupEntry> groupList;
 
@@ -45,6 +45,11 @@ namespace PasswordManager
         {
             accountEntries.Add(accountEntry);
         }
+        public void removeAccountEntry(AccountEntry accountEntry) 
+        {
+            accountEntry.Dispose();
+            accountEntries.Remove(accountEntry);
+        }
 
         public List<AccountEntry> GetAccountEntries() 
         {
@@ -56,6 +61,22 @@ namespace PasswordManager
         public string getName()
         {
             return name;
+        }
+
+        public void Dispose()
+        {
+            for (int i = accountEntries.Count - 1; i >= 0; i--)
+            {
+                var obj = accountEntries[i];
+                obj.Dispose();
+                accountEntries.Remove(obj);
+            }
+            for (int i = groupList.Count - 1; i >= 0; i--)
+            {
+                var obj = groupList[i];
+                obj.Dispose();
+                groupList.Remove(obj);
+            }
         }
     }
 }

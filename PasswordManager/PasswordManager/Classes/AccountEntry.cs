@@ -12,7 +12,7 @@ namespace PasswordManager
     ///<Summary>
     ///Класс представляет собой запись в листе паролей, содержащая в себе сам пароль, логин и прочие поля (расширяется динамически)
     ///</Summary>
-    public class AccountEntry
+    public class AccountEntry : IDisposable
     {
         ///<Summary>
         ///Конструктор класса, который принимает на вход пароль, логин (дополнительные поля добавляются по обращению к индексу)
@@ -82,6 +82,11 @@ namespace PasswordManager
             {
                 Properties[key] = value;
             }
+        }
+
+        public void Dispose()
+        {
+            password.Dispose();
         }
     }
 }

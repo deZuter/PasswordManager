@@ -6,8 +6,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Windows.Forms;
-using Timer = System.Timers.Timer;
+using System.Xml.Linq;
 
 namespace PasswordManager
 {
@@ -17,23 +22,79 @@ namespace PasswordManager
         Config config;
         public MainForm()
         {
-            using (LoginForm inputDialog = new LoginForm())
-            {
-                if (inputDialog.ShowDialog() == DialogResult.OK)
-                {
-                    // Получаем выбранный узел и добавляем туда новую запись, с именем из диалогового окна
-                    this.key = new MasterKey(inputDialog.key);
-                }
-                else 
-                {
-                    this.Close();
-                }
-            }
-            config = FileManager.LoadOrCreateConfig();
             InitializeComponent();
+            this.StartPosition = FormStartPosition.CenterScreen;
+            MainForm_Init();
+            config = FileManager.LoadOrCreateConfig();
+            if (!ShowLoginForm(config.lastDbName))
+            {
+                this.Close();
+                return;
+            }
+            try
+            {
+                var newRoot = FileManager.LoadDb(config.pathWithName, key);
+                rootEntry = newRoot;
+                treeViewManager.Override(rootEntry);
+                listViewManager.setNewGroup(rootEntry);
+            }
+            catch
+            {
+                var dialogResult = MessageBox.Show("Ошибка при открытии базы паролей\nЖелаете создать новую базу паролей?",
+                    "Ошибка",
+                    MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                if (dialogResult == DialogResult.OK)
+                {
+                    if (!ShowNewDbForm())
+                    {
+                        this.Close();
+                    }
+                }
+                else this.Close();
+            }
+
+
+        }
+        private bool ShowLoginForm(string fileName = null, bool showNewDbButton = true)
+        {
+            using (LoginForm loginForm = new LoginForm(fileName, showNewDbButton))
+            {
+                var dialogResult = loginForm.ShowDialog();
+                if (dialogResult == DialogResult.OK)
+                {
+                    this.key = new MasterKey(loginForm.key);
+                    config.lastDbName = loginForm.FileName;
+                }
+                else if (dialogResult == DialogResult.Yes)  //из-за неимением большего используем Yes, а так то результат NewDb
+                {
+                    if (!ShowNewDbForm())
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+        private bool ShowNewDbForm()
+        {
+            using (NewDbForm newDbForm = new NewDbForm())
+            {
+                var dialogResult = newDbForm.ShowDialog();
+                if (dialogResult != DialogResult.OK)
+                {
+                    return false;
+                }
+                this.key = newDbForm.key;
+                config.lastDbName = newDbForm.dbName;
+                return true;
+            }
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private void MainForm_Init()
         {
             tbSearch_init();
             lwAccounts_init();
@@ -57,7 +118,7 @@ namespace PasswordManager
                 this._lwAccounts = listView;
                 _lwAccounts.Columns.Add("Название", 150);
                 _lwAccounts.Columns.Add("Логин", 150);
-                _lwAccounts.Columns.Add("Пароль", 150);
+                _lwAccounts.Columns.Add("Пароль", 50);
                 _lwAccounts.View = View.Details;
                 _lwAccounts.Scrollable = true;
                 _lwAccounts.HeaderStyle = ColumnHeaderStyle.Clickable;
@@ -68,12 +129,22 @@ namespace PasswordManager
                 _groupEntry.addAccountEntry(account);
                 PopulateListView();
             }
+            public void RemoveSelectedAccountEntry()
+            {
+                if (_lwAccounts.SelectedItems.Count != 0)
+                {
+
+                    var accountEntry = _lwAccounts.SelectedItems[0].Tag as AccountEntry;
+                    _groupEntry.removeAccountEntry(accountEntry);
+                }
+                PopulateListView();
+            }
             public void setNewGroup(GroupEntry group)
             {
                 this._groupEntry = group;
                 PopulateListView();
             }
-            private void PopulateListView()
+            public void PopulateListView()
             {
                 List<AccountEntry> accountEntries = _groupEntry.GetAccountEntries();
                 // Очистка ListView перед добавлением новых данных
@@ -82,7 +153,7 @@ namespace PasswordManager
                 if (accountEntries == null)
                 {
                     // Добавление сообщения о пустом списке в ListView
-                    ListViewItem emptyItem = new ListViewItem("No entries found");
+                    ListViewItem emptyItem = new ListViewItem("Записей не найдено");
                     _lwAccounts.Items.Add(emptyItem);
                     _lblAccountsCount.Text = "0 aккаунт(ов)";
                     return;
@@ -105,10 +176,24 @@ namespace PasswordManager
                     // Добавление строки в ListView
                     _lwAccounts.Items.Add(item);
                 }
-                _lblAccountsCount.Text =_lwAccounts.Items.Count.ToString() + " aккаунт(ов)";
+                _lblAccountsCount.Text = _lwAccounts.Items.Count.ToString() + " aккаунт(ов)";
             }
         }
 
+        private void btnDeleteAccount_Click(object sender, EventArgs e)
+        {
+            listViewManager.RemoveSelectedAccountEntry();
+        }
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            using (AddAccountForm addAccountForm = new AddAccountForm(key))
+            {
+                if (addAccountForm.ShowDialog() == DialogResult.OK)
+                {
+                    listViewManager.AddAccountEntry(addAccountForm.account);
+                }
+            }
+        }
         #endregion
 
         #region tbSearch
@@ -136,6 +221,44 @@ namespace PasswordManager
             {
                 tbSearch.Text = DEFUALT_SEARCH_TEXT;
                 tbSearch.ForeColor = SystemColors.GrayText;
+                listViewManager.PopulateListView();
+            }
+        }
+
+        private void tbSearch_TextChanged(object sender, EventArgs e)
+        {
+            if (tbSearch.Text == "")
+            {
+                return;
+            }
+            string searchText = tbSearch.Text;
+            lwAccounts.Items.Clear(); // Очистка ListView перед добавлением результатов поиска
+            SearchNodes(twGroups.Nodes, searchText);
+        }
+
+        private void SearchNodes(TreeNodeCollection nodes, string searchText)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                var groupEntry = node.Tag as GroupEntry;
+                if (groupEntry.accountEntries != null && groupEntry.accountEntries.Count != 0)
+                {
+                    foreach (AccountEntry entry in groupEntry.accountEntries)
+                    {
+                        if (entry.accountName.Contains(searchText))
+                        {
+                            // Создание ListViewItem для отображения AccountEntry в ListView
+                            ListViewItem item = new ListViewItem(entry.accountName);
+                            item.SubItems.Add(entry.login);
+                            item.SubItems.Add("********");
+                            item.Tag = entry;
+                            // Добавление ListViewItem в ListView
+                            lwAccounts.Items.Add(item);
+                        }
+                    }
+                }
+                // Рекурсивный вызов функции для поиска в дочерних нодах
+                if (node.Nodes.Count != 0) SearchNodes(node.Nodes, searchText);
             }
         }
 
@@ -192,15 +315,28 @@ namespace PasswordManager
                     parentEntry.groupList.Add(newGroupEntry);
                     parentNode.Nodes.Add(newNode);
                 }
+                _treeView.ExpandAll();
+            }
+            public void RemoveSelectedGroupEntry()
+            {
+                TreeNode node = _treeView.SelectedNode;
+                TreeNode rootNode = _treeView.Nodes[0];
+                if (node == null)
+                {
+                    return;
+                }
+                if (rootNode == node)
+                {
+                }
+                var entry = node.Tag as GroupEntry;
+                entry.Dispose();
+                node.Remove();
             }
             public void Override(GroupEntry groupEntry)
             {
                 _treeView.Nodes.Clear();
                 AddGroupEntry(groupEntry, null);
-            }
-            public TreeNode getSelectedNode() 
-            {
-                return _treeView.SelectedNode;
+                _treeView.ExpandAll();
             }
         }
         private void twGroups_AfterSelect(object sender, TreeViewEventArgs e)
@@ -223,9 +359,9 @@ namespace PasswordManager
                 }
             }
         }
-        private void twGroups_init() 
+        private void twGroups_init()
         {
-            rootEntry = new GroupEntry("root");
+            rootEntry = new GroupEntry("Группы");
             treeViewManager = new TreeViewManager(twGroups);
             treeViewManager.InsertTreeNode(rootEntry);
         }
@@ -242,57 +378,92 @@ namespace PasswordManager
                 }
             }
         }
-        #endregion
-        private void btnAdd_Click(object sender, EventArgs e)
+        private void btnMinus_Click(object sender, EventArgs e)
         {
-            using (AddAccountForm addAccountForm = new AddAccountForm(key))
-            {
-                if (addAccountForm.ShowDialog() == DialogResult.OK)
-                {
-                    listViewManager.AddAccountEntry(addAccountForm.account);
-                }
-            }
+            treeViewManager.RemoveSelectedGroupEntry();
         }
-
+        #endregion
         private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (!ShowLoginForm(null, false))
             {
-                string selectedFile = openFileDialog.FileName;
-                rootEntry = FileManager.LoadEncryptedFile(selectedFile, key);
-                if (rootEntry == null) 
-                {
-                    return;
-                }
+                return;
+            }
+            try
+            {
+                var newRoot = FileManager.LoadDb(config.pathWithName, key);
+                rootEntry = newRoot;
                 treeViewManager.Override(rootEntry);
                 listViewManager.setNewGroup(rootEntry);
             }
+            catch
+            {
+                MessageBox.Show("Неправильный мастер-ключ.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
         }
-
         private void lwAccounts_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             if (lwAccounts.SelectedItems.Count > 0)
             {
-                    ListViewItem selectedItem = lwAccounts.SelectedItems[0];
-                    // Получаем объект из свойства Tag выбранного элемента
-                    var selectedObject = selectedItem.Tag as AccountEntry;
-                    selectedObject.password.CopyPasswordToClipboard(3000);
+                ListViewItem selectedItem = lwAccounts.SelectedItems[0];
+                // Получаем объект из свойства Tag выбранного элемента
+                var selectedObject = selectedItem.Tag as AccountEntry;
+                if (selectedObject == null) 
+                {
+                    toolStripStatusLabel.Text = "Невозможно скопировать пароль. Нет записей";
+                    return;
+                }
+                selectedObject.password.CopyPasswordToClipboard(3000);
+                toolStripStatusLabel.Text = "Пароль от аккаунта " + selectedObject.accountName + " скопирован в буфер обмена на 3 секунды";
             }
         }
-
-
         //обработка горячих клавиш
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.S)       // Ctrl-S Save
             {
-                FileManager.SaveDbToFile(rootEntry, config.DatabaseDirectory + "\\root", key);
+                FileManager.SaveDbToFile(rootEntry, config.pathWithName, key);
+                toolStripStatusLabel.Text = "Сохранено!";
             }
         }
         private void btnSave_Click(object sender, EventArgs e)
         {
-            FileManager.SaveDbToFile(rootEntry, config.DatabaseDirectory + "\\root", key);
+            FileManager.SaveDbToFile(rootEntry, config.pathWithName, key);
+            toolStripStatusLabel.Text = "Сохранено!";
+        }
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+
+            DialogResult dialogResult = MessageBox.Show("Сохранить текущую базу паролей?", "Выход", MessageBoxButtons.YesNo);
+            if (dialogResult == DialogResult.Yes)
+            {
+                FileManager.SaveConfigFile(config);
+                FileManager.SaveDbToFile(rootEntry, config.pathWithName, key);
+            }
+
+        }
+        private void СохранитьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FileManager.SaveDbToFile(rootEntry, config.pathWithName, key);
+            toolStripStatusLabel.Text = "Сохранено!";
+        }
+        private void новыйФайлToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!ShowNewDbForm()) 
+            {
+                return;
+            }
+            rootEntry = new GroupEntry("Группы");
+            treeViewManager.Override(rootEntry);
+            toolStripStatusLabel.Text = "Создана новая база паролей";
+        }
+        private void оПрограммеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (AboutProgramForm form = new AboutProgramForm())
+            {
+                form.ShowDialog();
+            }
         }
     }
 }
