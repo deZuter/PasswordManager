@@ -20,6 +20,7 @@ namespace PasswordManager
     {
         MasterKey key;
         Config config;
+        bool isNewDb = false;
         public MainForm()
         {
             InitializeComponent();
@@ -31,6 +32,11 @@ namespace PasswordManager
                 this.Close();
                 return;
             }
+            if (isNewDb)
+            {
+                this.Text = "Passwd - " + config.lastDbName;
+                return;
+            }
             try
             {
                 var newRoot = FileManager.LoadDb(config.pathWithName, key);
@@ -38,7 +44,7 @@ namespace PasswordManager
                 treeViewManager.Override(rootEntry);
                 listViewManager.setNewGroup(rootEntry);
             }
-            catch
+            catch (Exception ex)
             {
                 var dialogResult = MessageBox.Show("Ошибка при открытии базы паролей\nЖелаете создать новую базу паролей?",
                     "Ошибка",
@@ -52,8 +58,7 @@ namespace PasswordManager
                 }
                 else this.Close();
             }
-
-
+            this.Text = "Passwd - " + config.lastDbName;
         }
         private bool ShowLoginForm(string fileName = null, bool showNewDbButton = true)
         {
@@ -63,7 +68,7 @@ namespace PasswordManager
                 if (dialogResult == DialogResult.OK)
                 {
                     this.key = new MasterKey(loginForm.key);
-                    config.lastDbName = loginForm.FileName;
+                    config.pathWithName = loginForm.FileName;
                 }
                 else if (dialogResult == DialogResult.Yes)  //из-за неимением большего используем Yes, а так то результат NewDb
                 {
@@ -90,10 +95,10 @@ namespace PasswordManager
                 }
                 this.key = newDbForm.key;
                 config.lastDbName = newDbForm.dbName;
+                isNewDb = true;
                 return true;
             }
         }
-
         private void MainForm_Init()
         {
             tbSearch_init();

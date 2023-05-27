@@ -130,8 +130,10 @@
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.txtKey);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.KeyPreview = true;
             this.Name = "LoginForm";
             this.Text = "Passwd";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.LoginForm_KeyDown);
             this.ResumeLayout(false);
             this.PerformLayout();
 

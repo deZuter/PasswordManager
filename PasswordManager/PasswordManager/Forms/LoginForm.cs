@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PasswordManager.Classes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -69,8 +70,16 @@ namespace PasswordManager.Forms
                 if (result == DialogResult.OK)
                 {
                     // Получение выбранного пути до директории
-                    this.FileName = fileDialog.SafeFileName.ToString();
+                    this.FileName = fileDialog.FileName;
                 }
+            }
+        }
+
+        private void LoginForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnOk_Click(sender, e);
             }
         }
     }

@@ -23,7 +23,7 @@ namespace PasswordManager
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Произошла какая-то ошибка. Свяжитесь с разработчиком dvlob@yandex.ru и напишите: " + ex.Message, "Ой!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
 
         }

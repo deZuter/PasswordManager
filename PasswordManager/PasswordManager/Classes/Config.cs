@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,11 @@ namespace PasswordManager.Classes
             get 
             {
                 return databaseDirectory + "\\" + lastDbName;
+            }
+            set
+            {
+                lastDbName = Path.GetFileName(value);
+                databaseDirectory = Path.GetDirectoryName(value);
             }
         }
     }
