@@ -2,10 +2,6 @@
 using PasswordManager.Classes;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace PasswordManager
 {
@@ -17,25 +13,36 @@ namespace PasswordManager
         ///<Summary>
         ///Конструктор класса, который принимает на вход пароль, логин (дополнительные поля добавляются по обращению к индексу)
         ///</Summary>
-        public AccountEntry(string accountName, string login, string password, MasterKey key)
+        public AccountEntry(string accountName, string login, string password, MasterKey key, Dictionary<string, string> properties)
         {
             this.accountName = accountName;
             this.login = login;
             this.password = new Password(password, key);
             password = null;
-            this.Properties = new Dictionary<string, string>();
+            this.properties = properties;
+        }
+
+        ///<Summary>
+        ///Конструктор класса, который принимает на вход пароль, логин (дополнительные поля добавляются по обращению к индексу)
+        ///</Summary>
+        public AccountEntry(string accountName, string login, Password password, Dictionary<string, string> properties)
+        {
+            this.accountName = accountName;
+            this.login = login;
+            this.password = password;
+            this.properties = properties;
         }
 
         ///<Summary>
         ///Конструктор класса для Json
         ///</Summary>
         [JsonConstructor]
-        public AccountEntry(string accountName, string login, string password)
+        private AccountEntry(string accountName, string login, string password)
         {
             this.accountName = accountName;
             this.login = login;
             this.password = JsonConvert.DeserializeObject<Password>(password); ;
-            this.Properties = new Dictionary<string, string>();
+            this.properties = new Dictionary<string, string>();
         }
         ///<Summary>
         ///Название аккаунта
@@ -65,7 +72,7 @@ namespace PasswordManager
         ///Словарь хранит в себе динамически расширяемые значения полей
         ///</Summary>
         [JsonProperty]
-        private Dictionary<string, string> Properties { get; set; }
+        public Dictionary<string, string> properties { get; set; }
 
         ///<Summary>
         ///Обращение к полям записи (не получится обратиться к паролю
@@ -75,12 +82,12 @@ namespace PasswordManager
             get
             {
                 string value;
-                Properties.TryGetValue(key, out value);
+                properties.TryGetValue(key, out value);
                 return value;
             }
             set
             {
-                Properties[key] = value;
+                properties[key] = value;
             }
         }
 

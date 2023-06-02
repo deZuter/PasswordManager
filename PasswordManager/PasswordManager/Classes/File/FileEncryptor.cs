@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PasswordManager.Classes
 {
-    public class FileEncryptor : IDisposable
+    public class FileEncryptor
     {
         public static void EncryptAndSaveToFile(JObject jsonObj, MasterKey key, string filePath)
         {
@@ -44,7 +44,6 @@ namespace PasswordManager.Classes
                 }
             }
         }
-
         public static JObject DecryptJsonFile(string filePath, MasterKey key)
         {
             byte[] encryptedData = File.ReadAllBytes(filePath);
@@ -71,11 +70,6 @@ namespace PasswordManager.Classes
                     return jsonObject;
                 }
             }
-        }
-
-        public void Dispose()
-        {
-            return;
         }
     }
 }

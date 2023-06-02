@@ -14,13 +14,8 @@ namespace PasswordManager.Classes
 {
     public class FileManager
     {
-
         private const string configFilePath = "passwdConfig.cfg";
-        public static GroupEntry LoadDb(string filePath, MasterKey key) 
-        {
-            return LoadEncryptedFile(filePath, key);
-        } 
-        public static GroupEntry LoadEncryptedFile(string filePath, MasterKey key)
+        public static GroupEntry LoadDb(string filePath, MasterKey key)
         {
             var jObject = FileEncryptor.DecryptJsonFile(filePath, key);
 

@@ -50,7 +50,14 @@ namespace PasswordManager
             accountEntry.Dispose();
             accountEntries.Remove(accountEntry);
         }
-
+        public void modifyAccountEntry(AccountEntry oldAccountEntry, AccountEntry newAccountEntry)
+        {
+            int index = accountEntries.FindIndex(entry => entry == oldAccountEntry);
+            if (index != -1)
+            {
+                accountEntries[index] = newAccountEntry;
+            }
+        }
         public List<AccountEntry> GetAccountEntries() 
         {
             if (accountEntries.Count != 0)

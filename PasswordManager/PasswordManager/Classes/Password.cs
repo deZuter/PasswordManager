@@ -15,7 +15,6 @@ namespace PasswordManager
 {
     public class Password : IDisposable
     {
-       
         //отдельно указывать длину каждого поля необходимо для функции Protect и unprotect (тк в оперативке оказывается защита памяти идет блоками по 16 байт)
         [JsonProperty]
         byte[] password_masterKey;
@@ -35,12 +34,10 @@ namespace PasswordManager
         int password_IV_len;
         [JsonProperty]
         const int blockSize = 16;
-
         public Password(string password, MasterKey key) 
         {
             setPassword(password, key);
         }
-
         ///<Summary>
         ///Конструктор класса для Json
         ///</Summary>
@@ -209,7 +206,6 @@ namespace PasswordManager
             ProtectPasswordValuesInOperationalMemory();
             return jPass;
         }
-
         public void Dispose()
         {
             this.encryptedPassword = null;

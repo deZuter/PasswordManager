@@ -44,11 +44,11 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.tsStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.tslblAccountsCount = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.lwAccounts = new System.Windows.Forms.ListView();
             this.btnPlus = new System.Windows.Forms.Button();
             this.btnMinus = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
-            this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -62,7 +62,7 @@
             this.оПрограммеToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(673, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(673, 27);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -73,7 +73,7 @@
             this.открытьToolStripMenuItem,
             this.СохранитьToolStripMenuItem});
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
-            this.файлToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
+            this.файлToolStripMenuItem.Size = new System.Drawing.Size(55, 23);
             this.файлToolStripMenuItem.Text = "Файл";
             // 
             // новыйФайлToolStripMenuItem
@@ -102,19 +102,20 @@
             this.инструментыToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.генерацияToolStripMenuItem});
             this.инструментыToolStripMenuItem.Name = "инструментыToolStripMenuItem";
-            this.инструментыToolStripMenuItem.Size = new System.Drawing.Size(109, 24);
+            this.инструментыToolStripMenuItem.Size = new System.Drawing.Size(109, 23);
             this.инструментыToolStripMenuItem.Text = "Инструменты";
             // 
             // генерацияToolStripMenuItem
             // 
             this.генерацияToolStripMenuItem.Name = "генерацияToolStripMenuItem";
-            this.генерацияToolStripMenuItem.Size = new System.Drawing.Size(202, 24);
+            this.генерацияToolStripMenuItem.Size = new System.Drawing.Size(206, 24);
             this.генерацияToolStripMenuItem.Text = "Генерация пароля";
+            this.генерацияToolStripMenuItem.Click += new System.EventHandler(this.генерацияToolStripMenuItem_Click);
             // 
             // оПрограммеToolStripMenuItem
             // 
             this.оПрограммеToolStripMenuItem.Name = "оПрограммеToolStripMenuItem";
-            this.оПрограммеToolStripMenuItem.Size = new System.Drawing.Size(109, 24);
+            this.оПрограммеToolStripMenuItem.Size = new System.Drawing.Size(109, 23);
             this.оПрограммеToolStripMenuItem.Text = "О программе";
             this.оПрограммеToolStripMenuItem.Click += new System.EventHandler(this.оПрограммеToolStripMenuItem_Click);
             // 
@@ -188,6 +189,12 @@
             this.tslblAccountsCount.Size = new System.Drawing.Size(65, 19);
             this.tslblAccountsCount.Text = "Accounts";
             // 
+            // toolStripStatusLabel
+            // 
+            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
+            this.toolStripStatusLabel.Size = new System.Drawing.Size(18, 19);
+            this.toolStripStatusLabel.Text = "...";
+            // 
             // lwAccounts
             // 
             this.lwAccounts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -195,11 +202,12 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lwAccounts.FullRowSelect = true;
             this.lwAccounts.HideSelection = false;
-            this.lwAccounts.Location = new System.Drawing.Point(194, 64);
+            this.lwAccounts.Location = new System.Drawing.Point(190, 63);
             this.lwAccounts.Name = "lwAccounts";
             this.lwAccounts.Size = new System.Drawing.Size(471, 357);
             this.lwAccounts.TabIndex = 7;
             this.lwAccounts.UseCompatibleStateImageBehavior = false;
+            this.lwAccounts.MouseClick += new System.Windows.Forms.MouseEventHandler(this.lwAccounts_MouseClick);
             this.lwAccounts.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lwAccounts_MouseDoubleClick);
             // 
             // btnPlus
@@ -232,12 +240,6 @@
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
-            // toolStripStatusLabel
-            // 
-            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
-            this.toolStripStatusLabel.Size = new System.Drawing.Size(18, 19);
-            this.toolStripStatusLabel.Text = "...";
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -256,7 +258,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
             this.MainMenuStrip = this.menuStrip1;
-            this.MinimumSize = new System.Drawing.Size(100, 20);
+            this.MinimumSize = new System.Drawing.Size(100, 44);
             this.Name = "MainForm";
             this.Text = "Passwd";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);

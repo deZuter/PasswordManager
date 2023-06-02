@@ -27,7 +27,7 @@ namespace PasswordManager
             this.StartPosition = FormStartPosition.CenterScreen;
             MainForm_Init();
             config = FileManager.LoadOrCreateConfig();
-            if (!ShowLoginForm(config.lastDbName))
+            if (!ShowLoginForm(config.pathWithName))
             {
                 this.Close();
                 return;
@@ -183,6 +183,15 @@ namespace PasswordManager
                 }
                 _lblAccountsCount.Text = _lwAccounts.Items.Count.ToString() + " aккаунт(ов)";
             }
+            public void ModifySelectedAccountEntry(AccountEntry newEntry) 
+            {
+                if (_lwAccounts.SelectedItems.Count != 0)
+                {
+                    var oldEntry = _lwAccounts.SelectedItems[0].Tag as AccountEntry;
+                    _groupEntry.modifyAccountEntry(oldEntry, newEntry);
+                }
+                PopulateListView();
+            }
         }
 
         private void btnDeleteAccount_Click(object sender, EventArgs e)
@@ -332,6 +341,7 @@ namespace PasswordManager
                 }
                 if (rootNode == node)
                 {
+                    return;
                 }
                 var entry = node.Tag as GroupEntry;
                 entry.Dispose();
@@ -423,6 +433,25 @@ namespace PasswordManager
                 toolStripStatusLabel.Text = "Пароль от аккаунта " + selectedObject.accountName + " скопирован в буфер обмена на 3 секунды";
             }
         }
+        private void lwAccounts_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right) 
+            {
+                var accountEntry = lwAccounts?.SelectedItems[0].Tag as AccountEntry;
+                if (accountEntry == null)
+                {
+                    return;
+                }
+                using (AddAccountForm addAccountForm = new AddAccountForm(accountEntry, key))
+                {
+                    if (addAccountForm.ShowDialog() == DialogResult.OK)
+                    {
+                        listViewManager.ModifySelectedAccountEntry(addAccountForm.account);
+                    }
+                }
+            }
+        }
+
         //обработка горячих клавиш
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
@@ -468,6 +497,13 @@ namespace PasswordManager
             using (AboutProgramForm form = new AboutProgramForm())
             {
                 form.ShowDialog();
+            }
+        }
+        private void генерацияToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (GeneratePasswordForm generatePasswordForm = new GeneratePasswordForm())
+            {
+                var dialogResult = generatePasswordForm.ShowDialog();
             }
         }
     }

@@ -136,6 +136,7 @@
             this.btnCancel.TabIndex = 10;
             this.btnCancel.Text = "Отмена";
             this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // btnOk
             // 
@@ -166,7 +167,7 @@
             this.Controls.Add(this.txtAccountName);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AddAccountForm";
-            this.Text = "Новый аккаунт";
+            this.Text = "Аккаунт";
             this.ResumeLayout(false);
             this.PerformLayout();
 
